@@ -12,6 +12,15 @@ WebServer server(80);
 // post request json buffer
 StaticJsonDocument<250> jsonDocument;
 
+// pint
+void ping()
+{
+	server.send(200, "OK");
+#ifdef DEBUG
+	Serial.println("Received ping");
+#endif
+}
+
 // turn on all RGB components
 void lightsOn()
 {
@@ -194,6 +203,7 @@ void setup()
 #endif
 
 	// Rest API routing setup
+	server.on("/ping", ping);					   // ping
 	server.on("/on", lightsOn);					   // toggle on
 	server.on("/off", lightsOff);				   // toggle off
 	server.on("/color", HTTP_POST, handleColor);   // change color
