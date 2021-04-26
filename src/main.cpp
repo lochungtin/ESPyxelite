@@ -1,36 +1,63 @@
 #include <Arduino.h>
+#include <ArduinoJson.h>
 #include <WiFi.h>
 #include <WebServer.h>
-
 #include "env.h"
 
 #define DEBUG
+
+// server object
 WebServer server(80);
+
+// post request json buffer
+StaticJsonDocument<250> jsonDocument;
 
 // turn on all RGB components
 void lightsOn()
 {
+	server.send(200, "OK");
 #ifdef DEBUG
 	Serial.println("Lights On");
 #endif
-
-	server.send(200, "OK");
 }
 
 // turn off all RGB components
 void lightsOff()
 {
+	server.send(200, "OK");
 #ifdef DEBUG
 	Serial.println("Lights Off");
 #endif
+}
 
+// new config
+void handleConfig()
+{
 	server.send(200, "OK");
+#ifdef DEBUG
+	Serial.println("Set New Config");
+#endif
+
+	// handle empty post requests
+	if (server.hasArg("plain") == false)
+	{
+#ifdef DEBUG
+		Serial.println("No JSON arg, no config set");
+#endif
+		return;
+	}
+
+	String data = server.arg("plain");
+	deserializeJson(jsonDocument, data);
+
+	int test = jsonDocument["test"];
+
+	Serial.println(test);
 }
 
 // initial setup procedure
 void setup()
 {
-// put your setup code here, to run once:
 #ifdef DEBUG
 	Serial.begin(9600);
 	Serial.println("Connecting to WiFi");
@@ -47,8 +74,9 @@ void setup()
 #endif
 
 	// Rest API routing setup
-	server.on("/on", lightsOn);			// toggle on
-	server.on("/off", lightsOff);		// toggle off
+	server.on("/on", lightsOn);	  // toggle on
+	server.on("/off", lightsOff); // toggle off
+	server.on("/config", HTTP_POST, handleConfig);
 
 	server.begin();
 }
